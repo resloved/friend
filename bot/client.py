@@ -1,19 +1,16 @@
 import asyncio
 import os
-import nltk
+import requests
 
-from transformers import pipeline
 from nio import AsyncClient, MatrixRoom, RoomMessageText, InviteEvent
 from nio.exceptions import OlmUnverifiedDeviceError
 
-# nltk.download('punkt')
 # STORE_FOLDER = "store/"
 # SESSION_DETAILS_FILE = "credentials.json"
 
-generator = pipeline("text-generation", model="EleutherAI/gpt-neo-2.7B")
 client = AsyncClient(
-    "https://matrix.lllil.li",
-    "@friend:matrix.lllil.li",
+    os.environ['MATRIX_FRIEND_INSTANCE'],
+    f"@{os.environ['MATRIX_FRIEND_USER']}:{os.environ['MATRIX_FRIEND_INSTANCE']}",
     store_path="./store",
     device_id="bot"
 )
@@ -24,8 +21,6 @@ async def message_callback(room, event):
     if "friend" in event.body and event.sender != client.user:
         input = f"{room.user_name(event.sender)} - {event.body}\n@friend - "
         await client.room_typing(room.room_id, True)
-        output = generator(input, max_length=60)[0]['generated_text'].split(input)[1].strip().split("\n")[0]
-        sentences = nltk.tokenize.sent_tokenize(output)
         try:
             if output:
                 await client.room_send(
@@ -34,7 +29,7 @@ async def message_callback(room, event):
                     message_type="m.room.message",
                     content = {
                         "msgtype": "m.text",
-                        "body": " ".join(sentences[:-1]) if len(sentences) > 1 else sentences[0]
+                        "body": "I'm here!"
                     }
                 )
         except OlmUnverifiedDeviceError as e:
@@ -57,16 +52,12 @@ def trust_devices(user_id):
             print(f"Trusting {device_id} from user {user_id}")
 
 async def main():
-    await client.login(os.environ.get('FRIEND_PASS'))
+    await client.login(os.environ['MATRIX_FRIEND_PASS'])
     client.add_event_callback(autojoin_room, InviteEvent)
-    print("LOGIN")
     if client.should_upload_keys:
-        print("KEY UPLOAD")
         await client.keys_upload()
-    print("INIT")
     await client.sync(30000)
     client.add_event_callback(message_callback, RoomMessageText)
-    print("RUNTIME")
     await client.sync_forever(30000, full_state=True)
 
 asyncio.get_event_loop().run_until_complete(main())

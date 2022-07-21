@@ -1,0 +1,15 @@
+version: "3.3"
+
+services:
+    friend:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      environment:
+        MATRIX_FRIEND_INSTANCE: "${MATRIX_FRIEND_INSTANCE}"
+        MATRIX_FRIEND_USER: "${MATRIX_FRIEND_USER}"
+        MATRIX_FRIEND_PASS: "${MATRIX_FRIEND_PASS}"
+        PYTHONUNBUFFERED: "1"
+      volumes:
+        - "./app:/app"
+        

@@ -1,0 +1,26 @@
+# Pull the base image with python 3.8 as a runtime for your Lambda
+FROM public.ecr.aws/lambda/python:3.8
+
+RUN yum -y install \
+    git \
+    unzip
+
+RUN git clone -b slim https://github.com/resloved/RWKV-v2-RNN-Pile models
+WORKDIR models
+
+RUN python3 -m pip install -r requirements.txt
+ 
+RUN curl -LJ \
+    `curl -s https://api.github.com/repos/resloved/RWKV-v2-RNN-Pile/releases/latest \
+    | python3  -c 'import sys, json; print(json.load(sys.stdin)["assets"][0]["browser_download_url"])'` \
+    -o ./RWKV-v2-RNN-Pile.zip
+RUN unzip RWKV-v2-RNN-Pile.zip
+RUN rm RWKV-v2-RNN-Pile.zip
+RUN find -name '*.pth' -exec mv {} release.pth \;
+
+COPY app.py ../
+
+ENV PYTHONUNBUFFERED 1
+
+# Set the CMD to your handler
+CMD ["app.lambda_handler"]

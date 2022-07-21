@@ -1,4 +1,0 @@
-transformers
-matrix-nio[e2e]
-torch
-nltk

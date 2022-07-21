@@ -1,0 +1,12 @@
+version: "3.3"
+
+services:
+    rwkv:
+      build:
+        context: .
+        dockerfile: Dockerfile.al2
+      container_name: rwkv
+      volumes:
+        - ./app.py:/var/task/app.py
+      ports:
+        - "9000:8080"

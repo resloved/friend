@@ -49,7 +49,7 @@ RUN apk add --no-cache \
 # This will build libolm and place it at /libolm
 # This will also build the libolm python bindings and place them at /python-libs
 # We will later copy contents from both of these folders to the runtime container
-COPY docker/build_and_install_libolm.sh /scripts/
+COPY build_and_install_libolm.sh /scripts/
 RUN /scripts/build_and_install_libolm.sh ${LIBOLM_VERSION} /python-libs
 
 # Now that libolm is installed, install matrix-nio with e2e dependencies
@@ -75,11 +75,11 @@ COPY --from=builder /usr/local/lib/libolm* /usr/local/lib/
 RUN apk add --no-cache \
     libstdc++
 
-###################
-# resloved/friend #
-###################
+#######################
+# resloved/friend/bot #
+#######################
 
-COPY . /app
+COPY app /app
 WORKDIR /app
 RUN pip install -r requirements.txt
-CMD python client.py
+CMD python -u client.py

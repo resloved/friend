@@ -1,0 +1,10 @@
+https://learn.hashicorp.com/tutorials/terraform/lambda-api-gateway?in=terraform/aws
+https://aws.amazon.com/blogs/machine-learning/using-container-images-to-run-pytorch-models-in-aws-lambda/
+https://docs.aws.amazon.com/lambda/latest/dg/images-create.html
+https://aws.amazon.com/blogs/compute/getting-started-with-testing-serverless-applications/
+
+---
+
+https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest/examples/container-image
+https://hands-on.cloud/terraform-deploy-python-lambda-container-image/
+https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
