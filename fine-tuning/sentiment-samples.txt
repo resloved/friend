@@ -1,0 +1,21 @@
+Baseline data sentiment results
+
+{'Positive': 128566, 'Negative': 27651, 'Neutral': 32161}
+
+or
+
+68%/15%/17%
+
+Response sentiment when labeled <Positive>, <Negative>, or <Neutral> (Over 1000 samples)
+
+> do you like video games?
+
+<Positive> {'Positive': 921, 'Negative': 72, 'Neutral': 7}
+<Negative> {'Positive': 451, 'Negative': 506, 'Neutral': 43}
+<Neutral>  {'Positive': 422, 'Negative': 218, 'Neutral': 360}
+
+> i am going to get groceries
+
+<Positive>: {'Positive': 477, 'Negative': 23, 'Neutral': 500}
+<Negative>: {'Positive': 183, 'Negative': 205, 'Neutral': 612}
+<Neutral>: {'Positive': 116, 'Negative': 32, 'Neutral': 852}

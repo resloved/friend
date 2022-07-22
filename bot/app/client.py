@@ -64,7 +64,6 @@ def prompt(messages, **kwargs):
     text += f"\n{agents[client.user]} <Positive>:"
 
     text = text.replace("@friend", "friend")
-    print(text)
 
     kwargs["msg"] = text
     try:
@@ -73,7 +72,8 @@ def prompt(messages, **kwargs):
             json=kwargs,
         )
         return r.text.strip()
-    except:
+    except Exception as e:
+        print(e)
         return ""
 
 
