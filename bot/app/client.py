@@ -5,20 +5,24 @@ import os, random
 from nio import AsyncClient, MatrixRoom, RoomMessageText, InviteEvent
 from nio.exceptions import OlmUnverifiedDeviceError
 
+MATRIX_FRIEND_INSTANCE = os.environ['MATRIX_FRIEND_INSTANCE']
+MATRIX_FRIEND_USER = os.environ['MATRIX_FRIEND_USER']
+MATRIX_FRIEND_PASS = os.environ['MATRIX_FRIEND_PASS']
+MATRIX_FRIEND_INFERENCE_API = os.environ['MATRIX_FRIEND_INFERENCE_API']
+MATRIX_FRIEND_DEVICE = os.getenv('MATRIX_FRIEND_DEVICE', 'Bot_Friend')
 
 os.makedirs("./store/", exist_ok=True)
 client = AsyncClient(
-    f"https://{os.environ['MATRIX_FRIEND_INSTANCE']}",
-    f"@{os.environ['MATRIX_FRIEND_USER']}:{os.environ['MATRIX_FRIEND_INSTANCE']}",
+    f"{MATRIX_FRIEND_INSTANCE}",
+    f"{MATRIX_FRIEND_USER}",
     store_path="./store/",
 )
 
 recent_messages = {}
 ctx_len = 5
 
-
 async def message_callback(room, event):
-    print(f"{room.user_name(event.sender)} - {event.body}")
+    print(f"> {room.user_name(event.sender)} - {event.body}")
 
     if not room.room_id in recent_messages:
         recent_messages[room.room_id] = [{"user": event.sender, "body": event.body}]
@@ -78,13 +82,16 @@ def prompt(messages, **kwargs):
 
 
 async def main():
-    await client.login(os.environ["MATRIX_FRIEND_PASS"])
+    print(f"Attempting to login to {MATRIX_FRIEND_INSTANCE} as {MATRIX_FRIEND_USER}")
+    print(await client.login(MATRIX_FRIEND_PASS, MATRIX_FRIEND_DEVICE))
     client.load_store()
     client.add_event_callback(autojoin_room, InviteEvent)
     if client.should_upload_keys:
         await client.keys_upload()
+    print("Initial Sync")
     await client.sync(30000)
     client.add_event_callback(message_callback, RoomMessageText)
+    print("Continually Syncing")
     await client.sync_forever(30000, full_state=True)
 
 
