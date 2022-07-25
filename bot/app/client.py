@@ -5,11 +5,11 @@ import os, random
 from nio import AsyncClient, MatrixRoom, RoomMessageText, InviteEvent
 from nio.exceptions import OlmUnverifiedDeviceError
 
-MATRIX_FRIEND_INSTANCE = os.environ['MATRIX_FRIEND_INSTANCE']
-MATRIX_FRIEND_USER = os.environ['MATRIX_FRIEND_USER']
-MATRIX_FRIEND_PASS = os.environ['MATRIX_FRIEND_PASS']
-MATRIX_FRIEND_INFERENCE_API = os.environ['MATRIX_FRIEND_INFERENCE_API']
-MATRIX_FRIEND_DEVICE = os.getenv('MATRIX_FRIEND_DEVICE', 'Bot_Friend')
+MATRIX_FRIEND_INSTANCE = os.getenv("MATRIX_FRIEND_INSTANCE", "localhost:8080")
+MATRIX_FRIEND_USER = os.environ["MATRIX_FRIEND_USER"]
+MATRIX_FRIEND_PASS = os.environ["MATRIX_FRIEND_PASS"]
+MATRIX_FRIEND_INFERENCE_API = os.environ["MATRIX_FRIEND_INFERENCE_API"]
+MATRIX_FRIEND_DEVICE = os.getenv("MATRIX_FRIEND_DEVICE", "Bot_Friend")
 
 os.makedirs("./store/", exist_ok=True)
 client = AsyncClient(
@@ -21,8 +21,9 @@ client = AsyncClient(
 recent_messages = {}
 ctx_len = 5
 
+
 async def message_callback(room, event):
-    print(f"> {room.user_name(event.sender)} - {event.body}")
+    print(f"[{room.display_name}] {room.user_name(event.sender)}: {event.body}")
 
     if not room.room_id in recent_messages:
         recent_messages[room.room_id] = [{"user": event.sender, "body": event.body}]
@@ -35,7 +36,7 @@ async def message_callback(room, event):
     if interact or "friend" in event.body and event.sender != client.user:
         await client.room_typing(room.room_id, True)
         result = prompt(
-            recent_messages[room.room_id], seperators=["\n"], temperature=0.1
+            recent_messages[room.room_id], seperators=["\n"], temperature=1.0
         )
         while result:
             try:
@@ -46,7 +47,7 @@ async def message_callback(room, event):
                 )
                 break
             except OlmUnverifiedDeviceError as e:
-                print(e)
+                print(f"Attempting to verify {e.device}")
                 client.verify_device(e.device)
         await client.room_typing(room.room_id, False)
 
@@ -72,7 +73,7 @@ def prompt(messages, **kwargs):
     kwargs["msg"] = text
     try:
         r = requests.post(
-            os.getenv("MATRIX_FRIEND_INFERENCE_API", "localhost:8080"),
+            MATRIX_FRIEND_INFERENCE_API,
             json=kwargs,
         )
         return r.text.strip()
@@ -83,7 +84,7 @@ def prompt(messages, **kwargs):
 
 async def main():
     print(f"Attempting to login to {MATRIX_FRIEND_INSTANCE} as {MATRIX_FRIEND_USER}")
-    print(await client.login(MATRIX_FRIEND_PASS, MATRIX_FRIEND_DEVICE))
+    await client.login(password=MATRIX_FRIEND_PASS, device_name=MATRIX_FRIEND_DEVICE)
     client.load_store()
     client.add_event_callback(autojoin_room, InviteEvent)
     if client.should_upload_keys:
