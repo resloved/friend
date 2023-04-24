@@ -4,7 +4,7 @@ services:
     rwkv:
       build:
         context: .
-        dockerfile: Dockerfile.al2
+        dockerfile: Dockerfile
       container_name: rwkv
       volumes:
         - ./app.py:/var/task/app.py
