@@ -8,5 +8,6 @@ services:
       container_name: rwkv
       volumes:
         - ./app.py:/var/task/app.py
+        - ./run.py:/var/task/models/run.py
       ports:
         - "9000:8080"

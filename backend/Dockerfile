@@ -3,18 +3,27 @@ FROM public.ecr.aws/lambda/python:3.8
 RUN yum -y install \
     git \
     tar \
-    unzip
+    unzip \
+    make \
+    gcc-c++
+
+RUN curl -L https://cmake.org/files/v3.12/cmake-3.12.0.tar.gz > cmake-3.12.0.tar.gz
+RUN tar xvzf cmake-3.12.0.tar.gz
+WORKDIR cmake-3.12.0
+RUN ./bootstrap
+RUN make
+RUN make install
+WORKDIR ../
 
 RUN git clone --recursive https://github.com/saharNooby/rwkv.cpp rwkv
 WORKDIR rwkv
-RUN curl -L https://github.com/saharNooby/rwkv.cpp/releases/download/master-c736ef5/rwkv-master-c736ef5-bin-Linux-Ubuntu-22.04-x86_64.zip > rwkv-cpp-libary.zip
-RUN unzip rwkv-cpp-libary.zip
 
-RUN curl -L https://github.com/resloved/friend/releases/download/friend/friend-3B-Q4-0.tar.gz > friend-3B-Q4-0.tar.gz
-RUN tar xvf friend-3B-Q4-0.tar.gz
-RUN rm friend-3B-Q4-0.tar.gz
-RUN find -name '*.bin' -exec mv {} release.bin \;
+RUN cmake -DBUILD_SHARED_LIBS=ON .
+RUN cmake --build . --config Release
 
+RUN pip install -r rwkv/requirements.txt
+
+COPY friend-3B-Q4-0.bin release.bin
 COPY app.py ../
 
 ENV PYTHONUNBUFFERED 1

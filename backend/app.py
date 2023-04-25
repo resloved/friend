@@ -1,15 +1,15 @@
-import json
-import rwkv_cpp_model
-import rwkv_cpp_shared_library
+import json, sys, os
+import tokenizers
+
+sys.path.append("rwkv")
+import rwkv_cpp_model, rwkv_cpp_shared_library, sampling
+
 
 model_path = "release.bin"
 
-model = rwkv_cpp_model.RWKVModel(
-    rwkv_cpp_shared_library.load_rwkv_shared_library(), model_path
-)
-
-tokenizer_path = pathlib.Path(os.path.abspath(__file__)).parent / "20B_tokenizer.json"
-tokenizer = tokenizers.Tokenizer.from_file(str(tokenizer_path))
+library = rwkv_cpp_shared_library.load_rwkv_shared_library()
+model = rwkv_cpp_model.RWKVModel(library, model_path)
+tokenizer = tokenizers.Tokenizer.from_file("rwkv/20B_tokenizer.json")
 
 
 def lambda_handler(event, context):
@@ -25,25 +25,33 @@ def lambda_handler(event, context):
     }
 
 
-def prompt(
-    msg="Why was the message missing?",
+def prompt(msg="Why was the message missing?", **kwargs):
+    return infer(msg, **kwargs)
+
+
+def infer(
+    msg,
+    min_tokens=10,
     max_tokens=1000,
     seperators=["\n"],
     temperature=1.0,
     top_p=0.7,
+    **kwargs
 ):
     logits, state = None, None
     result = ""
 
     for token in tokenizer.encode(msg).ids:
         logits, state = model.eval(token, state)
-        print(f"Output logits: {logits}")
-        i = 0
-        while i < max_tokens:
-            token = sampling.sample_logits(logits, temperature, top_p)
-            decoded = tokenizer.decode([token])
-            if decoded in seperators:
-                return result
-            logits, state = model.eval(token, state, state, logits)
+
+    i = 0
+    while i < max_tokens:
+        token = sampling.sample_logits(logits, temperature, top_p)
+        decoded = tokenizer.decode([token])
+        if i > min_tokens and decoded in seperators:
+            return result
+        logits, state = model.eval(token, state, state, logits)
+        result += decoded
+        i += 1
 
     return result
